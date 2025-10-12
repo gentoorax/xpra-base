@@ -1,4 +1,4 @@
-FROM ubuntu:focal
+FROM ubuntu:jammy
 LABEL maintainer="juan.baptiste@gmail.com"
 ENV DISPLAY=:100
 ENV WEB_VIEW_PORT 10000
