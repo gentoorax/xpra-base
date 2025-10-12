@@ -1,0 +1,55 @@
+name: Promote Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_tag:
+        description: Tag of the existing image to promote (for example v12 or v12-abc1234)
+        required: true
+        type: string
+      target_channel:
+        description: Promotion target
+        required: true
+        type: choice
+        options:
+          - rc
+          - stable
+
+env:
+  IMAGE_NAME: ghcr.io/gentoorax/xpra-base
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Retag and push
+        env:
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          SOURCE_TAG: ${{ inputs.source_tag }}
+          TARGET_CHANNEL: ${{ inputs.target_channel }}
+        run: |
+          docker pull "${IMAGE_NAME}:${SOURCE_TAG}"
+
+          if [ "${TARGET_CHANNEL}" = "rc" ]; then
+            docker tag "${IMAGE_NAME}:${SOURCE_TAG}" "${IMAGE_NAME}:rc"
+            docker tag "${IMAGE_NAME}:${SOURCE_TAG}" "${IMAGE_NAME}:rc-${SOURCE_TAG}"
+            docker push "${IMAGE_NAME}:rc"
+            docker push "${IMAGE_NAME}:rc-${SOURCE_TAG}"
+          else
+            docker tag "${IMAGE_NAME}:${SOURCE_TAG}" "${IMAGE_NAME}:stable"
+            docker tag "${IMAGE_NAME}:${SOURCE_TAG}" "${IMAGE_NAME}:stable-${SOURCE_TAG}"
+            docker tag "${IMAGE_NAME}:${SOURCE_TAG}" "${IMAGE_NAME}:latest"
+            docker push "${IMAGE_NAME}:stable"
+            docker push "${IMAGE_NAME}:stable-${SOURCE_TAG}"
+            docker push "${IMAGE_NAME}:latest"
+          fi
