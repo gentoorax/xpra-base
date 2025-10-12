@@ -5,10 +5,7 @@ ENV WEB_VIEW_PORT 10000
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update && \
-    apt-get install -y wget gnupg && \
-    wget -O - http://winswitch.org/gpg.asc | apt-key add - && \
-    echo "deb http://winswitch.org/ focal  main" > /etc/apt/sources.list.d/xpra.list && \
-    apt-get install -y software-properties-common && \
+    apt-get install -y software-properties-common wget gnupg && \
     add-apt-repository universe && \
     apt-get update && \
     apt-get install -y xpra xvfb && \
