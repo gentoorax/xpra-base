@@ -4,15 +4,14 @@ on:
   push:
   workflow_dispatch:
 
-env:
-  IMAGE_NAME: ghcr.io/gentoorax/xpra-base
-
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    env:
+      IMAGE_NAME: ghcr.io/gentoorax/xpra-base
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,10 +29,24 @@ jobs:
       - name: Compute version metadata
         id: meta
         run: |
+          MAJOR="${{ vars.MAJOR_VERSION }}"
+          MINOR="${{ vars.MINOR_VERSION }}"
+          if [ -z "${MAJOR}" ]; then
+            MAJOR="1"
+          fi
+          if [ -z "${MINOR}" ]; then
+            MINOR="0"
+          fi
+          REVISION="${GITHUB_RUN_NUMBER}"
           SHORT_SHA="$(echo "${GITHUB_SHA}" | cut -c1-7)"
-          VERSION="v${GITHUB_RUN_NUMBER}"
+          VERSION="${MAJOR}.${MINOR}.${REVISION}"
+          PRE_RELEASE="${VERSION}-alpha-${SHORT_SHA}"
+          echo "major=${MAJOR}" >> "${GITHUB_OUTPUT}"
+          echo "minor=${MINOR}" >> "${GITHUB_OUTPUT}"
+          echo "revision=${REVISION}" >> "${GITHUB_OUTPUT}"
           echo "short_sha=${SHORT_SHA}" >> "${GITHUB_OUTPUT}"
           echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "pre_release=${PRE_RELEASE}" >> "${GITHUB_OUTPUT}"
 
       - name: Build and push image
         uses: docker/build-push-action@v5
@@ -42,9 +55,9 @@ jobs:
           push: true
           tags: |
             ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
-            ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}-${{ steps.meta.outputs.short_sha }}
+            ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.pre_release }}
             ${{ env.IMAGE_NAME }}:commit-${{ steps.meta.outputs.short_sha }}
           labels: |
             org.opencontainers.image.source=${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.version=${{ steps.meta.outputs.version }}-${{ steps.meta.outputs.short_sha }}
+            org.opencontainers.image.version=${{ steps.meta.outputs.pre_release }}
