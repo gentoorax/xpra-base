@@ -54,9 +54,7 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
             ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.pre_release }}
-            ${{ env.IMAGE_NAME }}:commit-${{ steps.meta.outputs.short_sha }}
           labels: |
             org.opencontainers.image.source=${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
