@@ -17,7 +17,13 @@ fi
 #Use Xpra to enable access through a web browser
 if [ "${ENABLE_WEB_VIEW}" == "yes" ]; then
 
-  XPRA="xpra start --bind-tcp=0.0.0.0:${WEB_VIEW_PORT} --html=on --start=${CMD} --daemon=no --pulseaudio=no --notifications=no --bell=no"
+  XPRA="xpra start --bind-tcp=0.0.0.0:${WEB_VIEW_PORT} --html=on --daemon=no --pulseaudio=no --notifications=no --bell=no"
+
+  if [ "${START_WINDOW_MANAGER:-yes}" != "no" ]; then
+    XPRA="${XPRA} --start-child=openbox"
+  fi
+
+  XPRA="${XPRA} --start=${CMD}"
 
   #Check if credentials have been provided
   if [ -z "${XPRA_USER}" ] && [ -z "${XPRA_PASSWORD}" ]; then

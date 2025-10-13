@@ -8,7 +8,7 @@ RUN apt-get update && \
     apt-get install -y software-properties-common wget gnupg && \
     add-apt-repository universe && \
     apt-get update && \
-    apt-get install -y xpra xvfb && \
+    apt-get install -y xpra xvfb openbox && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     useradd -ms /bin/bash -G xpra user
