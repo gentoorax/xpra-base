@@ -90,8 +90,8 @@ if [ "${ENABLE_WEB_VIEW}" = "yes" ]; then
   #Check if credentials have been provided
   if [ -n "${XPRA_USER:-}" ] && [ -n "${XPRA_PASSWORD:-}" ]; then
     rm -f /home/user/auth.sdb
-    run_user_cmd python3 /usr/lib/python3/dist-packages/xpra/server/auth/sqlite_auth.py /home/user/auth.sdb create
-    run_user_cmd python3 /usr/lib/python3/dist-packages/xpra/server/auth/sqlite_auth.py /home/user/auth.sdb add "${XPRA_USER}" "${XPRA_PASSWORD}"
+    run_user_cmd python3 -m xpra.auth.sqlite /home/user/auth.sdb create
+    run_user_cmd python3 -m xpra.auth.sqlite /home/user/auth.sdb add "${XPRA_USER}" "${XPRA_PASSWORD}"
     XPRA_ARGS+=(
       --auth=sqlite:filename=/home/user/auth.sdb
       --ws-auth=sqlite:filename=/home/user/auth.sdb
