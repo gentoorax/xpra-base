@@ -16,16 +16,16 @@ jobs:
       IMAGE_NAME: ghcr.io/gentoorax/xpra-base
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Load version prefix
         run: cat .drone/version-prefix.env >> "${GITHUB_ENV}"
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -55,7 +55,7 @@ jobs:
 
       - name: Build and push image
         id: build
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
@@ -111,7 +111,7 @@ jobs:
           printf '%s@%s\n' "${IMAGE_NAME}" "${IMAGE_DIGEST}" > provenance/image-digest.txt
 
       - name: Upload release evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: provenance-${{ steps.meta.outputs.pre_release }}
           path: provenance/
