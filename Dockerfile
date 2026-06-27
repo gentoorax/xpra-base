@@ -31,6 +31,7 @@ RUN apt-get update && \
         openbox \
         xdg-utils \
         xpra \
+        xpra-x11 \
         xvfb && \
     xpra --version && \
     rm -f /etc/xpra/ssl/key.pem /etc/xpra/ssl/ssl-cert.pem /etc/xpra/ssl/cert.pem && \
