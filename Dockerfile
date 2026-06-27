@@ -29,8 +29,10 @@ RUN apt-get update && \
         gosu \
         menu \
         openbox \
+        python3-xdg \
         xdg-utils \
         xpra \
+        xpra-html5 \
         xpra-x11 \
         xvfb && \
     xpra --version && \
