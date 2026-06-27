@@ -16,6 +16,21 @@ XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-/home/user/.config}"
 export XDG_RUNTIME_DIR
 export XDG_CONFIG_HOME
 
+run_as_user() {
+  if [ "$(id -u)" -eq 0 ]; then
+    exec gosu user "$@"
+  fi
+  exec "$@"
+}
+
+run_user_cmd() {
+  if [ "$(id -u)" -eq 0 ]; then
+    gosu user "$@"
+    return
+  fi
+  "$@"
+}
+
 if [ "${DEBUG}" = "yes" ]; then
   env
   set -x
@@ -25,8 +40,14 @@ if [ -z "${CMD}" ]; then
   echo "ERROR: No command specified." && exit 1
 fi
 
-mkdir -p "${XDG_RUNTIME_DIR}" "${XDG_CONFIG_HOME}/menus" /home/user/.xpra
-chmod 700 "${XDG_RUNTIME_DIR}" /home/user/.xpra
+if [ "$(id -u)" -eq 0 ]; then
+  install -d -m 700 -o user -g user "${XDG_RUNTIME_DIR}" /home/user/.xpra
+  install -d -m 755 -o user -g user "${XDG_CONFIG_HOME}/menus"
+  chown -R user:user /home/user
+else
+  mkdir -p "${XDG_RUNTIME_DIR}" "${XDG_CONFIG_HOME}/menus" /home/user/.xpra
+  chmod 700 "${XDG_RUNTIME_DIR}" /home/user/.xpra
+fi
 
 cat > "${XDG_CONFIG_HOME}/menus/applications.menu" <<'EOF'
 <!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
@@ -68,8 +89,9 @@ if [ "${ENABLE_WEB_VIEW}" = "yes" ]; then
 
   #Check if credentials have been provided
   if [ -n "${XPRA_USER:-}" ] && [ -n "${XPRA_PASSWORD:-}" ]; then
-    python3 /usr/lib/python3/dist-packages/xpra/server/auth/sqlite_auth.py /home/user/auth.sdb create
-    python3 /usr/lib/python3/dist-packages/xpra/server/auth/sqlite_auth.py /home/user/auth.sdb add "${XPRA_USER}" "${XPRA_PASSWORD}"
+    rm -f /home/user/auth.sdb
+    run_user_cmd python3 /usr/lib/python3/dist-packages/xpra/server/auth/sqlite_auth.py /home/user/auth.sdb create
+    run_user_cmd python3 /usr/lib/python3/dist-packages/xpra/server/auth/sqlite_auth.py /home/user/auth.sdb add "${XPRA_USER}" "${XPRA_PASSWORD}"
     XPRA_ARGS+=(
       --auth=sqlite:filename=/home/user/auth.sdb
       --ws-auth=sqlite:filename=/home/user/auth.sdb
@@ -77,7 +99,7 @@ if [ "${ENABLE_WEB_VIEW}" = "yes" ]; then
     )
   fi
 
-  exec xvfb-run -a --server-args="-screen 0 1600x1200x24" xpra "${XPRA_ARGS[@]}"
+  run_as_user xvfb-run -a --server-args="-screen 0 1600x1200x24" xpra "${XPRA_ARGS[@]}"
 else
-  exec ${CMD}
+  run_as_user /bin/bash -lc "${CMD}"
 fi

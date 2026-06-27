@@ -26,12 +26,14 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         dbus-x11 \
         desktop-file-utils \
+        gosu \
         menu \
         openbox \
         xdg-utils \
         xpra \
         xvfb && \
     xpra --version && \
+    rm -f /etc/xpra/ssl/key.pem /etc/xpra/ssl/ssl-cert.pem /etc/xpra/ssl/cert.pem && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     useradd -ms /bin/bash -G xpra user
